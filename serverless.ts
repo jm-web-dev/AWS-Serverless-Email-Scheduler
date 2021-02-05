@@ -15,12 +15,16 @@ const serverlessConfiguration: Serverless = {
         },
     },
     // Add the serverless-webpack plugin
-    plugins: ['serverless-webpack'],
+    plugins: [
+        'serverless-webpack', 
+        'serverless-offline'
+    ],
     provider: {
         name: 'aws',
         runtime: 'nodejs12.x',
-        profile: 'serverlessUser',
-        region: 'eu-west-1',
+        //IAM user
+        profile: 'serverless',
+        region: 'ap-southeast-1',
         apiGateway: {
             minimumCompressionSize: 1024,
         },
