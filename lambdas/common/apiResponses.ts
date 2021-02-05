@@ -1,15 +1,23 @@
 export const apiResponses = {
-    _200: (body: { [key: string]: any }) => {
+    _DefineResponse(statusCode = 502, data = {}) {
         return {
-            statusCode: 200,
-            body: JSON.stringify(body, null, 2),
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Methods': '*',
+                'Access-Control-Allow-Origin': '*',
+            },
+            statusCode,
+            body: JSON.stringify(data),
         };
     },
-    _400: (body: { [key: string]: any }) => {
-        return {
-            statusCode: 400,
-            body: JSON.stringify(body, null, 2),
-        };
+    _200(data = {}) {
+        return this._DefineResponse(200, data);
+    },
+    _400(data = {}) {
+        return this._DefineResponse(400, data);
+    },
+    _204(data = {}) {
+        return this._DefineResponse(204, data);
     },
 };
 
