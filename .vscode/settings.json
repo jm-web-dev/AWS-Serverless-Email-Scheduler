@@ -1,0 +1,7 @@
+{
+    "[markdown]": {
+        "editor.wordWrapColumn": 120,
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.quickSuggestions": false
+    }
+}
