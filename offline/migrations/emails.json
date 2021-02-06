@@ -1,0 +1,21 @@
+{
+    "Table": {
+        "TableName": "emails",
+        "KeySchema": [
+            {
+                "AttributeName": "ID",
+                "KeyType": "HASH"
+            }
+        ],
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "ID",
+                "AttributeType": "S"
+            }
+        ],
+        "provisionedThroughput": {
+            "ReadCapacityUnits": 1,
+            "WriteCapacityUnits": 1
+        }
+    }
+}

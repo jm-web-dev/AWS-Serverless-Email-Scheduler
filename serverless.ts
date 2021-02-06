@@ -13,31 +13,62 @@ const serverlessConfiguration: Serverless = {
             webpackConfig: './webpack.config.js',
             includeModules: true,
         },
+        dynamodb: {
+            stages: [ 'dev', 'test' ],
+            start: {
+                port: 8000,
+                inMemory: true,
+                migrate: true
+            },
+            migration: {
+                dir: 'offline/migrations'
+            }
+        }
     },
-    // Add the serverless-webpack plugin
     plugins: [
         'serverless-webpack', 
-        'serverless-offline'
+        'serverless-offline',
+        'serverless-dynamodb-local'
     ],
     provider: {
         name: 'aws',
         runtime: 'nodejs12.x',
-        //IAM user
+        //TODO: generic IAM user + region
         profile: 'serverless',
         region: 'ap-southeast-1',
         apiGateway: {
             minimumCompressionSize: 1024,
         },
-        environment: {
-            AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-        },
+        // environment: {
+        //     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        // },
         iamRoleStatements: [
             {
                 Effect: 'Allow',
-                Action: ['translate:*'],
+                Action: [
+                    'dynamodb:*'
+                ],
                 Resource: '*',
             },
         ],
+    },
+     resources: {
+        Resources: {
+            Emails: {
+                Type: 'AWS::DynamoDB::Table',
+                Properties: {
+                //TODO: tablename should be variable
+                TableName: 'emails',
+                AttributeDefinitions: [
+                    { AttributeName: 'ID', AttributeType: 'S' }
+                ],
+                KeySchema: [
+                    { AttributeName: 'ID', KeyType: 'HASH' }
+                ],
+                BillingMode: 'PAY_PER_REQUEST'
+                }
+            }
+        }
     },
     functions: {
         getCityInfo: {
@@ -47,18 +78,6 @@ const serverlessConfiguration: Serverless = {
                     http: {
                         path: 'get-city/{city}',
                         method: 'get',
-                        cors: true,
-                    },
-                },
-            ],
-        },
-        translate: {
-            handler: 'lambdas/translate.handler',
-            events: [
-                {
-                    http: {
-                        path: 'translate',
-                        method: 'POST',
                         cors: true,
                     },
                 },

@@ -1,6 +1,6 @@
 module.exports = {
     tables: [{
-        TableName: 'signups',
+        TableName: 'emails',
         KeySchema: [
             {            
                 AttributeName: 'ID',
