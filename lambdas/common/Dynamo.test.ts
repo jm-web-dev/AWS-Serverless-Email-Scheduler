@@ -44,4 +44,3 @@ test('dynamo update works', async () => {
         console.log('error in dynamo update: ', error);
     }
 });
-
