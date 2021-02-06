@@ -20,8 +20,6 @@ const documentClient = new AWS.DynamoDB.DocumentClient(options);
 
 const Dynamo = {
     async get(ID, TableName) {
-        console.log('Table NAme: ', TableName)
-        console.log('Document client: ', documentClient)
         const params = {
             TableName,
             Key: {
@@ -56,6 +54,19 @@ const Dynamo = {
 
         return data;
     },
+
+    async update(TableName, primaryKey, primaryKeyValue, updateKey, updateValue) {
+        const params = {
+            TableName,
+            Key: { [primaryKey]: primaryKeyValue },
+            UpdateExpression: `set ${updateKey} = :updateValue`,
+            ExpressionAttributeValues: {
+                ':updateValue': updateValue
+            }
+        }
+
+        return documentClient.update(params).promise();
+    }
 };
 
 export default Dynamo
