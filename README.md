@@ -1,3 +1,5 @@
+TODO: Write readme
+
 # AWS TypeScript API
 
 This repo is designed to showcase how easy it can be to build and deploy an API on AWS using Serverless and TypeScript.

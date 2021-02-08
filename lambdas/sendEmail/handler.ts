@@ -1,4 +1,7 @@
+import 'source-map-support/register';
 import * as AWS from 'aws-sdk';
+
+import { middyfy } from '../common/middyfy';
 
 interface email {
     to: string;
@@ -10,7 +13,8 @@ interface email {
 const ses = new AWS.SES();
 const { EMAIL_SENDER_ADDRESS } = process.env;
 
-const handler = async (event) => {
+const emailSend = async (event) => {
+    console.log(event)
     const result = await sendEmail(event.email);
     return result;
 };
@@ -38,4 +42,4 @@ const sendEmail = (email: email) => {
     return ses.sendEmail(params).promise();
 }
 
-export default handler;
+export const main = middyfy(emailSend);

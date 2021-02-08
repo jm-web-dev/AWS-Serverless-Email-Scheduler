@@ -1,8 +1,12 @@
+import 'source-map-support/register';
 import * as AWS from 'aws-sdk';
+
+import { middyfy } from '../common/middyfy';
 
 const stepfunctions = new AWS.StepFunctions();
 
-const handler = async (event) => {
+const scheduleEmail = async (event) => {
+    console.log(event);
     const stateMachineArn = process.env.STATEMACHINE_ARN;
     const result = await stepfunctions.startExecution({
         stateMachineArn,
@@ -11,4 +15,4 @@ const handler = async (event) => {
     return result;
 };
 
-export default handler;
+export const main = middyfy(scheduleEmail);

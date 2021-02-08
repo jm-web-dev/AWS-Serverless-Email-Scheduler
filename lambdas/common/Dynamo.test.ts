@@ -1,23 +1,24 @@
-import Dynamo from '../common/Dynamo';
+import DB from '../common/Dynamo';
 
 test('Dynamo is an object', () => {
-    expect(typeof Dynamo).toBe('object');
+    expect(typeof DB).toBe('object');
 });
 
-test('dynamo has get and write', () => {
-    expect(typeof Dynamo.get).toBe('function');
-    expect(typeof Dynamo.write).toBe('function');
+test('Dynamo has get, write and update', () => {
+    expect(typeof DB.get).toBe('function');
+    expect(typeof DB.write).toBe('function');
+    expect(typeof DB.update).toBe('function');
 });
 
 const validTableName = 'emails';
-//TODO: update to better example
-const data = { ID: '3081042', score: 25, name: 'Chris' };
-const updatedData = { ID: '3081042', score: 99, name: 'Chris' };
+//TODO: remove email
+const data = { ID: '3081042', sendStatus: 'INIT', address: 'anhtieng89@gmail.com', jobId: 'xxx' };
+const updatedData = { ID: '3081042', sendStatus: 'SENT', address: 'anhtieng89@gmail.com', jobId: 'xxx' };
 
 test('Dynamo write works', async () => {
     expect.assertions(1);
     try {
-        const res = await Dynamo.write(data, validTableName);
+        const res = await DB.write(data, validTableName);
         expect(res).toBe(data);
     } catch (error) {
         console.log('error in dynamo write test', error);
@@ -27,7 +28,7 @@ test('Dynamo write works', async () => {
 test('dynamo get works', async () => {
     expect.assertions(1);
     try {
-        const res = await Dynamo.get(data.ID, validTableName);
+        const res = await DB.get(data.ID, validTableName);
         expect(res).toEqual(data);
     } catch (error) {
         console.log('error in dynamo get', error);
@@ -37,8 +38,8 @@ test('dynamo get works', async () => {
 test('dynamo update works', async () => {
     expect.assertions(1);
     try {
-        await Dynamo.update(validTableName, 'ID', '3081042', 'score', 99);
-        const res = await Dynamo.get(data.ID, validTableName);
+        await DB.update(validTableName, 'ID', '3081042', 'sendStatus', 'SENT');
+        const res = await DB.get(data.ID, validTableName);
         expect(res).toEqual(updatedData);
     } catch (error) {
         console.log('error in dynamo update: ', error);

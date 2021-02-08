@@ -18,7 +18,7 @@ if (process.env.JEST_WORKER_ID) {
 
 const documentClient = new AWS.DynamoDB.DocumentClient(options);
 
-const Dynamo = {
+const DB = {
     async get(ID, TableName) {
         const params = {
             TableName,
@@ -69,4 +69,4 @@ const Dynamo = {
     }
 };
 
-export default Dynamo
+export default DB;
