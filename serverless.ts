@@ -6,6 +6,7 @@ import { cancelEmail,
          sendEmail,
          updateStatus } from './lambdas';
 
+//TODO: lambda package size
 //TODO: better typing
 interface stepFunctions {
     stateMachines: any;
@@ -63,7 +64,7 @@ const serverlessConfiguration: ServerlessPlus = {
             STATEMACHINE_ARN: '${self:resources.Outputs.ScheduleEmailStateMachine.Value}',
             EMAIL_SENDER_ADDRESS: 'anhtieng89@gmail.com'
         },
-        //TODO: more granular access
+        //TODO: more granular access for dynamo
         iamRoleStatements: [
             {
                 Effect: 'Allow',
@@ -77,8 +78,13 @@ const serverlessConfiguration: ServerlessPlus = {
             },
              {
                 Effect: 'Allow',
-                Action: [ 'states:StartExecution' ],
-                 Resource: [{ 'Ref': 'ScheduleEmailStateMachine' } ]
+                Action: [ 'states:StartExecution', 'states:StartExecution' ],
+                Resource: [{ 'Ref': 'ScheduleEmailStateMachine' } ]
+            },
+             {
+                Effect: 'Allow',
+                Action: [ 'states:StopExecution' ],
+                Resource: '*'
             }
         ]
     },
@@ -125,6 +131,25 @@ const serverlessConfiguration: ServerlessPlus = {
                         }
                     }
                 }
+            },
+            CancelEmailStateMachine: {
+                    name: 'CancelEmailStateMachine',
+                    definition: {   
+                        Comment: 'Cancel a scheduled Email',                     
+                        StartAt: 'CancelScheduledEmail',
+                        States: {
+                            CancelScheduledEmail: {
+                                Type: 'Task',
+                                Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:cancelWaitingEmail',
+                                Next: 'UpdateDbCancelledEmail'
+                            },
+                            UpdateDbCancelledEmail: {
+                                Type: 'Task',
+                                Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:updateStatus',
+                                End: true
+                            }
+                        }
+                }
             }
         }
     },
@@ -151,7 +176,13 @@ const serverlessConfiguration: ServerlessPlus = {
                 Value: {
                     'Ref': 'ScheduleEmailStateMachine'
                 }
-            }
+            },
+            CancelEmailStateMachine: {
+                Description: 'The ARN of the CancelEmailStateMachine',
+                Value: {
+                    'Ref': 'CancelEmailStateMachine'
+                }
+            },
         }
     }
 };

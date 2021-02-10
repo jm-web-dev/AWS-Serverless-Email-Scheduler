@@ -10,6 +10,8 @@ interface email {
     textBody?: string;
 }
 
+//TODO: valaideate iput and add retry
+
 const ses = new AWS.SES();
 const { EMAIL_SENDER_ADDRESS } = process.env;
 

@@ -5,6 +5,8 @@ import { middyfy } from '../common/middyfy';
 
 const stepfunctions = new AWS.StepFunctions();
 
+//TODO: cvalidate input
+
 const scheduleEmail = async (event) => {
     console.log(event);
     const stateMachineArn = process.env.STATEMACHINE_ARN;

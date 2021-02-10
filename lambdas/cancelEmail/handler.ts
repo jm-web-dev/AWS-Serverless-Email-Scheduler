@@ -6,16 +6,18 @@ import { middyfy } from '../common/middyfy';
 
 const stepfunctions = new AWS.StepFunctions();
 
-//TODO: add cancel to email DB
-const cancelEmail = async (event) => {
-    const requestData = JSON.parse(event.body);
-    const jobARN = requestData.input.arn.cancelARN;
+//TODO: check due date && deal with case where email sent and other rerrors
+const cancelEmail = async (event, _, callback) => {
+    console.log('event: ', event)
+
+    const { jobId, ID } = event;
+
     var params = {
-        executionArn: jobARN,
+        executionArn: jobId,
         cause: 'Booking Cancellation'
     };
     const result = await stepfunctions.stopExecution(params).promise();
-    return result;
+    return callback(null, { result, ID });
 };
 
 export const main = middyfy(cancelEmail);

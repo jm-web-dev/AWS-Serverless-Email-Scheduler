@@ -1,11 +1,7 @@
 import 'source-map-support/register';
 
 import Responses from '../common/apiResponses';
-import DB from '../common/Dynamo';
-
 import { middyfy } from '../common/middyfy';
-
-const tableName = process.env.tableName;
 
 const newScheduledEmail = async event => {
     console.log('event', event);
@@ -22,17 +18,10 @@ const newScheduledEmail = async event => {
 
     //create scheduled task
 
-    //add new email to DB
-    const newUser = await DB.write(user, tableName).catch(err => {
-        console.log('error in DB write', err);
-        return null;
-    });
+    
 
-    if (!newUser) {
-        return Responses._400({ message: 'Failed to write user by ID' });
-    }
-
-    return Responses._200({ newUser });
+   
+    return Responses._200({  });
 };
 
 export const main = middyfy(newScheduledEmail);
