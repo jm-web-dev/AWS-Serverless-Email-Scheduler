@@ -4,7 +4,6 @@ import { cancelEmail,
          newScheduledEmail,
          scheduleEmail,
          sendEmail,
-         updateARN,
          updateStatus } from './lambdas';
 
 //TODO: better typing
@@ -61,7 +60,8 @@ const serverlessConfiguration: ServerlessPlus = {
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
             TABLE_NAME: 'emails',
-            STATEMACHINE_ARN: '${self:resources.Outputs.ScheduleEmailStateMachine.Value}'
+            STATEMACHINE_ARN: '${self:resources.Outputs.ScheduleEmailStateMachine.Value}',
+            EMAIL_SENDER_ADDRESS: 'anhtieng89@gmail.com'
         },
         //TODO: more granular access
         iamRoleStatements: [
@@ -72,8 +72,13 @@ const serverlessConfiguration: ServerlessPlus = {
             },
              {
                 Effect: 'Allow',
+                Action: [ 'ses:SendEmail', 'ses:SendRawEmail' ],
+                Resource: { 'Fn::Sub': 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${self:provider.environment.EMAIL_SENDER_ADDRESS}' }                
+            },
+             {
+                Effect: 'Allow',
                 Action: [ 'states:StartExecution' ],
-                Resource: [ { 'Ref': 'ScheduleEmailStateMachine' } ]
+                 Resource: [{ 'Ref': 'ScheduleEmailStateMachine' } ]
             }
         ]
     },
@@ -82,7 +87,6 @@ const serverlessConfiguration: ServerlessPlus = {
                  newScheduledEmail,
                  scheduleEmail,
                  sendEmail,
-                 updateARN,
                  updateStatus },
     //TODO: resource arns properly
     stepFunctions: {
@@ -95,7 +99,13 @@ const serverlessConfiguration: ServerlessPlus = {
                     States: {
                         InsertEmailIntoDb: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:newEmailInDb:1',
+                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:newEmailInDb',
+                            Parameters: {
+                                'Execution.$': '$$.Execution.Id',
+                                Payload: {
+                                    'Input.$': '$'
+                                }
+                            },
                             Next: 'WaitForDueDate'
                         },
                         WaitForDueDate: {
@@ -105,12 +115,12 @@ const serverlessConfiguration: ServerlessPlus = {
                         },
                         SendEmail: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:sendEmail:1',
+                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:sendEmail',
                             Next: 'UpdateEmailInDb'
                         },
                         UpdateEmailInDb: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:updateStatus:1',
+                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:updateStatus',
                             End: true
                         }
                     }

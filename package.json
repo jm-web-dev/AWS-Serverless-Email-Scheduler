@@ -10,8 +10,9 @@
     "@middy/core": "^1.5.2",
     "@middy/http-json-body-parser": "^1.5.2",
     "aws-sdk": "^2.839.0",
-    "serverless": "^2.22.0",
-    "source-map-support": "^0.5.10"
+    "serverless": "^2.23.0",
+    "source-map-support": "^0.5.10",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@shelf/jest-dynamodb": "^1.7.0",

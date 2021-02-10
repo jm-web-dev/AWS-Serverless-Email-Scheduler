@@ -6,8 +6,8 @@ import { middyfy } from '../common/middyfy';
 interface email {
     to: string;
     subject: string;
-    htmlBody: string;
-    textBody: string;
+    htmlBody?: string;
+    textBody?: string;
 }
 
 const ses = new AWS.SES();
@@ -15,8 +15,9 @@ const { EMAIL_SENDER_ADDRESS } = process.env;
 
 const emailSend = async (event) => {
     console.log(event)
-    const result = await sendEmail(event.email);
-    return result;
+    const ID = event.newEmail.ID;
+    const result = await sendEmail(event.newEmail);
+    return { result, ID };
 };
 
 const sendEmail = (email: email) => {
