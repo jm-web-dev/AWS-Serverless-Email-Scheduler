@@ -6,7 +6,6 @@ import { middyfy } from '../common/middyfy';
 
 const tableName = process.env.TABLE_NAME;
 
-//TODO: deal with error cases
 const newEmailInDb = async (event, _, callback) => {
     console.log('event: ', event)
 
@@ -28,7 +27,7 @@ const newEmailInDb = async (event, _, callback) => {
     });
 
     if (!newEmail) {
-        return { message: 'Failed to write email by ID' };
+        return { message: 'Failed to write email to DB' };
     }
 
     callback(null, { newEmail, dueDate });

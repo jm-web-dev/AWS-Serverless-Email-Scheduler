@@ -6,7 +6,6 @@ import { middyfy } from '../common/middyfy';
 
 const stepfunctions = new AWS.StepFunctions();
 
-//TODO: check due date && deal with case where email sent and other rerrors
 const cancelEmail = async (event, _, callback) => {
     console.log('event: ', event)
 

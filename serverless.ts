@@ -2,12 +2,10 @@ import { Serverless } from 'serverless/aws';
 import { cancelEmail,
          newEmailInDb,
          newScheduledEmail,
-         scheduleEmail,
+         cancelScheduledEmail,
          sendEmail,
          updateStatus } from './lambdas';
 
-//TODO: lambda package size
-//TODO: better typing
 interface stepFunctions {
     stateMachines: any;
 }
@@ -15,12 +13,7 @@ interface stepFunctions {
 type ServerlessPlus = Serverless & { stepFunctions: stepFunctions };
 
 const serverlessConfiguration: ServerlessPlus = {
-    service: {
-        name: 'EmailScheduler',
-        // app and org for use with dashboard.serverless.com
-        // app: your-app-name,
-        // org: your-org-name,
-    },
+    service: 'EmailScheduler',
     frameworkVersion: '>=1.72.0',
     package: {
         individually: true
@@ -52,49 +45,58 @@ const serverlessConfiguration: ServerlessPlus = {
     provider: {
         name: 'aws',
         runtime: 'nodejs12.x',
-        //TODO: generic IAM user + region
+        //TODO: generic IAM user
+        //https://www.serverless.com/framework/docs/providers/aws/guide/credentials/
         profile: 'serverless',
         region: 'ap-southeast-1',
         apiGateway: {
-            minimumCompressionSize: 1024,
+            minimumCompressionSize: 0,
         },
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
             TABLE_NAME: 'emails',
             STATEMACHINE_ARN: '${self:resources.Outputs.ScheduleEmailStateMachine.Value}',
+            CANCEL_STATEMACHINE_ARN: '${self:resources.Outputs.CancelEmailStateMachine.Value}',
+            //TODO: another email
+            //https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
             EMAIL_SENDER_ADDRESS: 'anhtieng89@gmail.com'
         },
-        //TODO: more granular access for dynamo
         iamRoleStatements: [
             {
                 Effect: 'Allow',
-                Action: [ 'dynamodb:*' ],
-                Resource: '*'
+                Action: ['ssm:GetParameters*'],
+                Resource: {
+                    'Fn::Sub':'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+                }
             },
-             {
+            {
+                Effect: 'Allow',
+                Action: [ 'dynamodb:PutItem', 'dynamodb:UpdateItem' ],
+                Resource: { 'Fn::GetAtt' : [ 'Emails', 'Arn' ] }
+            },
+            {
                 Effect: 'Allow',
                 Action: [ 'ses:SendEmail', 'ses:SendRawEmail' ],
-                Resource: { 'Fn::Sub': 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${self:provider.environment.EMAIL_SENDER_ADDRESS}' }                
-            },
-             {
+                Resource: { 'Fn::Sub': [ 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ADDRESS}', { 'ADDRESS': '${self:provider.environment.EMAIL_SENDER_ADDRESS}'} ]}
+             },
+            {
                 Effect: 'Allow',
-                Action: [ 'states:StartExecution', 'states:StartExecution' ],
-                Resource: [{ 'Ref': 'ScheduleEmailStateMachine' } ]
+                Action: [ 'states:StartExecution' ],       
+                Resource: [ { 'Ref' : 'CancelEmailStateMachine' }, { 'Ref' : 'ScheduleEmailStateMachine' } ]
             },
-             {
+            {
                 Effect: 'Allow',
-                Action: [ 'states:StopExecution' ],
-                Resource: '*'
+                Action: [ 'states:StopExecution' ],       
+                Resource: '*'      
             }
         ]
     },
     functions: { cancelEmail,
                  newEmailInDb,
                  newScheduledEmail,
-                 scheduleEmail,
+                 cancelScheduledEmail,
                  sendEmail,
                  updateStatus },
-    //TODO: resource arns properly
     stepFunctions: {
         stateMachines: {
             ScheduleEmailStateMachine: {
@@ -105,7 +107,9 @@ const serverlessConfiguration: ServerlessPlus = {
                     States: {
                         InsertEmailIntoDb: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:newEmailInDb',
+                            Resource: {
+                                'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:newEmailInDb'
+                            },
                             Parameters: {
                                 'Execution.$': '$$.Execution.Id',
                                 Payload: {
@@ -121,34 +125,42 @@ const serverlessConfiguration: ServerlessPlus = {
                         },
                         SendEmail: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:sendEmail',
+                            Resource: {
+                                'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sendEmail'
+                            },
                             Next: 'UpdateEmailInDb'
                         },
                         UpdateEmailInDb: {
                             Type: 'Task',
-                            Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:updateStatus',
+                            Resource: {
+                                'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:updateStatus'
+                            },
                             End: true
                         }
                     }
                 }
             },
             CancelEmailStateMachine: {
-                    name: 'CancelEmailStateMachine',
-                    definition: {   
-                        Comment: 'Cancel a scheduled Email',                     
-                        StartAt: 'CancelScheduledEmail',
-                        States: {
-                            CancelScheduledEmail: {
-                                Type: 'Task',
-                                Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:cancelWaitingEmail',
-                                Next: 'UpdateDbCancelledEmail'
+                name: 'CancelEmailStateMachine',
+                definition: {   
+                    Comment: 'Cancel a scheduled Email',                     
+                    StartAt: 'CancelScheduledEmail',
+                    States: {
+                        CancelScheduledEmail: {
+                            Type: 'Task',
+                            Resource: {
+                                'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:cancelEmail'
                             },
-                            UpdateDbCancelledEmail: {
-                                Type: 'Task',
-                                Resource: 'arn:aws:lambda:ap-southeast-1:135209378380:function:updateStatus',
-                                End: true
-                            }
+                            Next: 'UpdateDbCancelledEmail'
+                        },
+                        UpdateDbCancelledEmail: {
+                            Type: 'Task',
+                            Resource: {
+                                'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:updateStatus'
+                            },
+                            End: true
                         }
+                    }
                 }
             }
         }
@@ -158,7 +170,6 @@ const serverlessConfiguration: ServerlessPlus = {
             Emails: {
                 Type: 'AWS::DynamoDB::Table',
                 Properties: {
-                    //TODO: tablename should be variable
                     TableName: 'emails',
                     AttributeDefinitions: [
                         { AttributeName: 'ID', AttributeType: 'S' }

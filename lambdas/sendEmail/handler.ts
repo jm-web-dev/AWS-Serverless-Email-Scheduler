@@ -10,9 +10,7 @@ interface email {
     textBody?: string;
 }
 
-//TODO: valaideate iput and add retry
-
-const ses = new AWS.SES();
+const ses = new AWS.SES({ maxRetries: 10 });
 const { EMAIL_SENDER_ADDRESS } = process.env;
 
 const emailSend = async (event) => {
