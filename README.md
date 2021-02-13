@@ -1,19 +1,59 @@
-TODO: Write readme
+# Serverless Email Scheduler
 
-# AWS TypeScript API
+This project is based on this email scheduler: https://serverlessfirst.com/serverless-email-scheduler/
 
-This repo is designed to showcase how easy it can be to build and deploy an API on AWS using Serverless and TypeScript.
+It allows you to schedule an email to be sent at a future date of your choosing. It stores all scheduled emails in an Amazon DynamoDB table and you can cancel a scheduled email based on the ID and arn stored in the table.
 
-## Setup
+The project uses 2 AWS step functions, one to schedule and send the emails at a certain time using the Wait task and one which cancels scheduled emails.
 
-To start you need to run `npm install` to install all of the required dependencies.
+There are 2 API endpoints. 
 
-Once that is done you just need to edit a few config bits in the _serverless.ts_ file. In the _provider_ section you need to make sure that your `profile` and `region` are correctly configured. Your profile should be name of the credentials you want to deploy to your AWS account with. If you've never set up AWS credentials then you can check out [this video](https://www.youtube.com/watch?v=D5_FHbdsjRc).
+The /new-email endpoint creates a new email scheduled job. You can POST to it with the following data:
 
-## What's in this Repo
+```json
+{  
+	"sendStatus": "string of your choice that indicates that the email has been scheduled not sent eg. INIT",
+	"to": "email address",
+	"dueDate": "UTC time string eg. 2021-02-10T16:35:24.000Z",
+	"subject": "email subject as string",
+	"textBody": "text body as string",
+	"htmlBody": "html input"
 
-There are two main parts to this repo. the `serverless.ts` file and the `lambdas` folder.
+}
+```
 
-The `serverless.ts` file is the file which defines the infrastructure that you want to deploy. When you add a new lambda you need to tell serverless what and how to deploy it.
+You must supply all of these with a valid email and date apart from textBody/htmlBody where you must supply at least one. 
 
-The `lambdas` folder contains all of the lambda endpoints that you are wanting to deploy, one file for each lambda. As well as that there is a `common` folder where you can add files that contain code you want to use across multiple lambdas.
+This will create an execution in the email scheduling step function and an entry into your DynamoDB table. 
+
+To cancel the execution POST to the /cancel-email endpoint with:
+
+```json
+{  
+	"ID": "ID of item in DynamoDB table",
+	"jobId": "ARN of execution (this is in the table)"
+}
+```
+
+
+
+## Pre-requisites
+
+You need an AWS account. Complete the following steps:
+
+1. [Verify an email address in SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html) from which emails will be sent from
+2. [Configure your AWS credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/)
+3. [Create an IAM user for serverless](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/) 
+4. Run `npm install` in the root folder
+5. Open `serverless.ts` and modify the `EMAIL_SENDER_ADDRESS` setting to be the email address you verified in step 1. 
+6. Set your `profile` to the user from step 3.
+7. Set your region.
+8. Deploy
+
+
+
+## Questions
+
+You can email me: jmwebdevelopment@protonmail.com
+
+I will be updating this project with some validation and more testing soon. 

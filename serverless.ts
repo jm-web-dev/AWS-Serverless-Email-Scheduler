@@ -45,9 +45,10 @@ const serverlessConfiguration: ServerlessPlus = {
     provider: {
         name: 'aws',
         runtime: 'nodejs12.x',
-        //TODO: generic IAM user
-        //https://www.serverless.com/framework/docs/providers/aws/guide/credentials/
+        // Create a serverless IAM user to add to profile
+        // https://www.serverless.com/framework/docs/providers/aws/guide/credentials/
         profile: 'serverless',
+        // add your region here
         region: 'ap-southeast-1',
         apiGateway: {
             minimumCompressionSize: 0,
@@ -57,9 +58,9 @@ const serverlessConfiguration: ServerlessPlus = {
             TABLE_NAME: 'emails',
             STATEMACHINE_ARN: '${self:resources.Outputs.ScheduleEmailStateMachine.Value}',
             CANCEL_STATEMACHINE_ARN: '${self:resources.Outputs.CancelEmailStateMachine.Value}',
-            //TODO: another email
-            //https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
-            EMAIL_SENDER_ADDRESS: 'anhtieng89@gmail.com'
+            // Create a verified SES email and use it here for testing
+            // https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
+            EMAIL_SENDER_ADDRESS: 'email@gmail.com'
         },
         iamRoleStatements: [
             {

@@ -11,10 +11,10 @@ test('Dynamo has get, write and update', () => {
 });
 
 const validTableName = 'emails';
-//TODO: remove email
-//https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
-const data = { ID: '3081042', sendStatus: 'INIT', to: 'anhtieng89@gmail.com', jobId: 'xxx' };
-const updatedData = { ID: '3081042', sendStatus: 'SENT', to: 'anhtieng89@gmail.com', jobId: 'xxx' };
+// Create a verified SES email and use it here for testing
+// https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
+const data = { ID: '3081042', sendStatus: 'INIT', to: 'email@gmail.com', jobId: 'xxx' };
+const updatedData = { ID: '3081042', sendStatus: 'SENT', to: 'email@gmail.com', jobId: 'xxx' };
 
 test('Dynamo write works', async () => {
     expect.assertions(1);
