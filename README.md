@@ -49,7 +49,7 @@ You need an AWS account. Complete the following steps:
 5. Open `serverless.ts` and modify the `EMAIL_SENDER_ADDRESS` setting to be the email address you verified in step 1. 
 6. Set your `profile` to the user from step 3.
 7. Set your region.
-8. Deploy
+8. Deploy `serverless deploy`
 
 
 
