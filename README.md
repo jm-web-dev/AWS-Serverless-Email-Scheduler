@@ -1,12 +1,13 @@
 # Serverless Email Scheduler
 
 This project is based on this email scheduler: https://serverlessfirst.com/serverless-email-scheduler/
+I highly recommend reading that blog post.
 
 It allows you to schedule an email to be sent at a future date of your choosing. It stores all scheduled emails in an Amazon DynamoDB table and you can cancel a scheduled email based on the ID and arn stored in the table.
 
 The project uses 2 AWS step functions, one to schedule and send the emails at a certain time using the Wait task and one which cancels scheduled emails.
 
-There are 2 API endpoints. 
+There are 2 API endpoints: /new-email and /cancel-email
 
 The /new-email endpoint creates a new email scheduled job. You can POST to it with the following data:
 
